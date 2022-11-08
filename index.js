@@ -30,6 +30,11 @@ app.get("*", (req, res)=>{
 })
 
 
+// global error handling middleware
+app.use((err, req, res, next) => {
+	res.status(500).send(err.message || 'Something broke!')
+})
+
 const PORT = process.env.PORT || 4000
 
 app.listen(PORT, ()=>console.log(`Server id running port ${PORT}`))
