@@ -33,6 +33,7 @@ router.get("/api/service/:id", async function (req, res, next) {
 })
 
 
+// add services with photo upload
 router.post("/api/service", auth, function (req, res, next) {
 	
 	const form = formidable({ multiples: true });
