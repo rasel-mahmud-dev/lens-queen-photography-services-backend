@@ -12,7 +12,8 @@ const corsOptions = {
 			
 			callback(null, true)
 		} else {
-			callback(new Error('Not allowed by CORS'))
+			// callback(null, true)new Error('Not allowed by CORS'))
+			callback(null, true)
 		}
 	}
 }
@@ -20,6 +21,7 @@ const corsOptions = {
 const app = express();
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(express.urlencoded({extended: true}))
 
 app.use(routes)
 
