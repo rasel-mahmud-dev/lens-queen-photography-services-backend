@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
 require('dotenv').config()
+
+const routes = require("./routes/index")
 
 const whitelist = [process.env.FRONTEND]
 const corsOptions = {
@@ -20,6 +21,7 @@ const app = express();
 app.use(cors(corsOptions))
 app.use(express.json())
 
+app.use(routes)
 
 
 app.get("*", (req, res)=>{
