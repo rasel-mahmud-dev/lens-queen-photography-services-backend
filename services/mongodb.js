@@ -9,9 +9,10 @@ function mongoConnect() {
 	return new Promise(async (resolve, reject) => {
 		const clientPromise = mongoClient.connect();
 		try {
-			// if(!database) {
+			// we use mongodb client caching
+			if(!database) {
 				database = (await clientPromise).db("lens-queen");
-			// }
+			}
 			resolve(database)
 			console.log("database connected...")
 		} catch (ex){

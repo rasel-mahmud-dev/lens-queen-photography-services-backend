@@ -13,7 +13,7 @@ router.get("/api/auth/validate-token", async function (req, res, next){
 		
 		let data = await parseToken(token)
 		
-		res.status(201).json(data)
+		res.status(200).json(data)
 	} catch (ex){
 		next(ex)
 	}
@@ -21,8 +21,8 @@ router.get("/api/auth/validate-token", async function (req, res, next){
 
 
 router.post("/api/auth/generate-token", function (req, res){
-	const { uid, email } = req.body
-	let token = createToken(uid, email)
+	const { userId, email } = req.body
+	let token = createToken( userId, email)
 	res.status(201).json({
 		token
 	})

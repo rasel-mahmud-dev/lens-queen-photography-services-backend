@@ -57,7 +57,6 @@ router.get("/api/reviews", async function (req, res, next) {
 
 // add review
 router.post("/api/review/:serviceId", auth, async function (req, res, next) {
-	
 	const {
 		name,
 		title,
@@ -72,7 +71,7 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 		const Review = db.collection("reviews")
 		
 		let payload = {
-			userId: req.user.uid,
+			userId: req.user.userId,
 			name,
 			rate: Number(rate),
 			serviceId: new ObjectId(req.params.serviceId),
@@ -94,11 +93,11 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 
 
 // delete service id
-router.delete("/api/review/:reviewId", async function (req, res) {
+router.delete("/api/review/:reviewId", auth, async function (req, res) {
 	try {
 		let db = await mongoConnect()
 		const Review = db.collection("reviews")
-		let doc = await Review.deleteOne({_id: ObjectId(req.params.reviewId)})
+		let doc = await Review.deleteOne({_id: ObjectId(req.params.reviewId), userId: req.user.userId})
 		if (doc.deletedCount) {
 			res.status(200).send({})
 		} else {

@@ -9,11 +9,35 @@ const router = express.Router()
 
 
 router.get("/api/services", async function (req, res, next) {
+	const {perPage= 10, pageNumber} = req.query
+	
 	try {
 		let db = await mongoConnect()
 		const Service = db.collection("services")
-		let services = await Service.find({}).toArray();
-		res.status(200).send(services ?? [])
+		let services = []
+		
+		let intPageSize = Number(perPage)
+		
+		// if perPage not provide then fetch all data
+		if(perPage && !isNaN(intPageSize)){
+			let intPageNumber = Number(pageNumber)
+			
+			/*
+				if page number 1 then return document 0 to limit
+				if page number 2 then return document 1 * limit to limit
+				if page number 3 then return document 2 * limit to limit
+				if page number n then return document (n - 1) * limit to limit
+			* */
+			
+			services = await Service.find({})
+				.skip((intPageNumber - 1) * intPageSize)
+				.limit(intPageSize)
+				.toArray();
+			
+		} else {
+			services = await Service.find({}).limit().toArray();
+		}
+		res.status(200).send(services)
 		
 	} catch (ex) {
 		next(ex)
@@ -40,12 +64,11 @@ router.post("/api/service", auth, function (req, res, next) {
 	
 	form.parse(req, async (err, fields, files) => {
 		if (err) {
-			res.writeHead(err.httpCode || 400, {'Content-Type': 'text/plain'});
-			res.end(String(err));
+			res.status(500).send("Internal error. Form parsing error")
 			return;
 		}
 		
-		const {name, description, price, image} = fields
+		const {name, description, price } = fields
 		let oldPath = files["image"].filepath
 		
 		try {
@@ -58,7 +81,7 @@ router.post("/api/service", auth, function (req, res, next) {
 			let payload = {
 				name,
 				email: req.user.email,
-				authorId: req.user.uid,
+				userId: req.user.userId,
 				image: filePath,
 				description,
 				price: Number(price)
