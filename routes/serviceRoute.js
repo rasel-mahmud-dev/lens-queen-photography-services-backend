@@ -44,7 +44,19 @@ router.get("/api/services", async function (req, res, next) {
 	}
 })
 
-router.get("/api/service/:id", async function (req, res, next) {
+router.get("/api/services-count", async function (req, res, next) {
+	try {
+		let db = await mongoConnect()
+		const Service = db.collection("services")
+		let count = await Service.countDocuments()
+		res.status(200).json({total: count})
+	} catch (ex) {
+		next(ex)
+	}
+})
+
+
+router.get("/api/service/:id",  async function (req, res, next) {
 	try {
 		let db = await mongoConnect()
 		const Service = db.collection("services")
@@ -68,23 +80,26 @@ router.post("/api/service", auth, function (req, res, next) {
 			return;
 		}
 		
-		const {name, description, price } = fields
+		const {username, title, description, price } = fields
 		let oldPath = files["image"].filepath
 		
 		try {
 			let result = await upload(oldPath)
-			let filePath  = result.image.url;
+			let uploadedFilePath  = result.image.url;
 	
 			let db = await mongoConnect()
 			const Service = db.collection("services")
-
+		
 			let payload = {
-				name,
+				title,
+				username,
 				email: req.user.email,
 				userId: req.user.userId,
-				image: filePath,
+				image: uploadedFilePath,
 				description,
-				price: Number(price)
+				price: Number(price),
+				createdAt: new Date(),
+				updatedAt: new Date()
 			}
 
 			let doc = await Service.insertOne(payload)
@@ -99,12 +114,69 @@ router.post("/api/service", auth, function (req, res, next) {
 })
 
 
-router.patch("/api/service", function (req, res) {
-	res.status(200).send([])
+router.patch("/api/service/:serviceId", auth, function (req, res, next) {
+	const form = formidable({ multiples: true });
+	
+	form.parse(req, async (err, fields, files) => {
+		if (err) {
+			res.status(500).send("Internal error. Form parsing error")
+			return;
+		}
+		
+		const { image, title, description, price } = fields
+		
+		try {
+			let uploadedFilePath = image
+			
+			if(files && files["image"]) {
+				let oldPath = files["image"].filepath
+				let result = await upload(oldPath)
+				uploadedFilePath = result.image.url;
+			}
+			
+			let db = await mongoConnect()
+			
+			const Service = db.collection("services")
+			
+			let payload = {}
+			if(title){
+				payload.title = title
+				payload.image = uploadedFilePath
+				payload.description = description
+				payload.price = Number(price)
+				payload.title = title
+				payload.email = req.user.email
+				payload.updatedAt = new Date()
+			}
+			
+			let doc = await Service.updateOne(
+				{_id: ObjectId(req.params.serviceId)},
+				{$set: payload}
+			)
+			
+			if (doc) {
+				payload._id = req.params.serviceId
+				res.status(201).send(payload)
+			}
+		} catch (ex) {
+			next(ex)
+		}
+	});
 })
 
-router.delete("/api/service", function (req, res) {
-	res.status(200).send([])
+router.delete("/api/service/:serviceId", auth, async function (req, res) {
+	try {
+		let db = await mongoConnect()
+		const Service = db.collection("services")
+		let doc = await Service.deleteOne({_id: ObjectId(req.params.serviceId), userId: req.user.userId})
+		if (doc.deletedCount) {
+			res.status(201).send({})
+		} else {
+			res.status(500).send({})
+		}
+	} catch (ex) {
+	
+	}
 })
 
 

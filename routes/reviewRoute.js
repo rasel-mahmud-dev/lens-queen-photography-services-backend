@@ -58,10 +58,10 @@ router.get("/api/reviews", async function (req, res, next) {
 // add review
 router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 	const {
-		name,
+		username,
 		title,
 		userPhoto,
-		description,
+		summary,
 		rate
 	} = req.body
 	
@@ -72,12 +72,14 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 		
 		let payload = {
 			userId: req.user.userId,
-			name,
+			username,
 			rate: Number(rate),
 			serviceId: new ObjectId(req.params.serviceId),
 			title,
 			image: userPhoto,
-			description: description,
+			summary: summary,
+			createdAt: new Date(),
+			updatedAt: new Date()
 		}
 		
 		let doc = await Review.insertOne(payload)
@@ -85,6 +87,45 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 			payload._id = doc.insertedId
 			res.status(201).send(payload)
 		}
+	} catch (ex) {
+		next(ex)
+	}
+})
+
+// update review
+router.patch("/api/review/:reviewId", auth, async function (req, res, next) {
+	const {
+		username,
+		title,
+		userPhoto,
+		summary,
+		rate
+	} = req.body
+	
+	try {
+		
+		let db = await mongoConnect()
+		const Review = db.collection("reviews")
+		
+		let payload = {
+			username,
+			rate: Number(rate),
+			title,
+			image: userPhoto,
+			summary: summary,
+			updatedAt: new Date()
+		}
+		
+		let doc = await Review.updateOne(
+			{_id: ObjectId(req.params.reviewId)},
+			{ $set: payload }
+		)
+		
+		if(doc){
+			payload._id = req.params.reviewId
+			res.status(201).send(payload)
+		}
+	
 	} catch (ex) {
 		next(ex)
 	}
@@ -99,7 +140,7 @@ router.delete("/api/review/:reviewId", auth, async function (req, res) {
 		const Review = db.collection("reviews")
 		let doc = await Review.deleteOne({_id: ObjectId(req.params.reviewId), userId: req.user.userId})
 		if (doc.deletedCount) {
-			res.status(200).send({})
+			res.status(201).send({})
 		} else {
 			res.status(500).send({})
 		}
