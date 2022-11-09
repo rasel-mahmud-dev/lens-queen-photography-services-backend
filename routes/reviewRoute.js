@@ -6,11 +6,48 @@ const {ObjectId} = require("mongodb");
 const router = express.Router()
 
 
-router.get("/api/reviews/:serviceId", async function (req, res, next) {
+// get single  review for id
+router.get("/api/review/:reviewId", auth, async function (req, res, next) {
+	
+	try {
+		let db = await mongoConnect()
+		const Review = db.collection("reviews")
+		let review = await Review.findOne({_id: ObjectId(req.params.reviewId)})
+		res.status(200).send(review)
+	} catch (ex) {
+		next(ex)
+	}
+})
+
+
+// get all reviews by serviceId or userId
+// serviceId provide using params
+router.get("/api/reviews", async function (req, res, next) {
+	const {userId, serviceId}  = req.query
 	try {
 		const db = await mongoConnect()
 		const Review = db.collection("reviews")
-		let reviews = await Review.find({serviceId: ObjectId(req.params.serviceId)}).toArray();
+		let reviews = []
+		
+		if(userId){
+			// join service for each review
+			reviews = await Review.aggregate([
+				{ $match: { userId: userId } },
+				{
+					$lookup: {
+						from: "services",
+						localField: "serviceId",
+						foreignField: "_id",
+						as: "service"
+					}
+				},
+				{ $unwind: { path: "$service", preserveNullAndEmptyArrays: true } }
+			]).toArray();
+			
+		} else if(serviceId){
+			reviews = await Review.find( { serviceId: ObjectId(serviceId)}).toArray()
+		}
+		
 		res.status(200).send(reviews)
 	} catch (ex) {
 		next(ex)
@@ -19,11 +56,10 @@ router.get("/api/reviews/:serviceId", async function (req, res, next) {
 
 
 // add review
-router.post("/api/review", auth, async function (req, res, next) {
+router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 	
 	const {
 		name,
-		serviceId,
 		title,
 		userPhoto,
 		description,
@@ -36,9 +72,10 @@ router.post("/api/review", auth, async function (req, res, next) {
 		const Review = db.collection("reviews")
 		
 		let payload = {
+			userId: req.user.uid,
 			name,
 			rate: Number(rate),
-			serviceId,
+			serviceId: new ObjectId(req.params.serviceId),
 			title,
 			image: userPhoto,
 			description: description,
@@ -56,7 +93,7 @@ router.post("/api/review", auth, async function (req, res, next) {
 })
 
 
-
+// delete service id
 router.delete("/api/review/:reviewId", async function (req, res) {
 	try {
 		let db = await mongoConnect()
