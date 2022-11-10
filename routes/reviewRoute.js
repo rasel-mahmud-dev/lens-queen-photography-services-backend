@@ -45,7 +45,10 @@ router.get("/api/reviews", async function (req, res, next) {
 			]).toArray();
 			
 		} else if(serviceId){
-			reviews = await Review.find( { serviceId: ObjectId(serviceId)}).toArray()
+			reviews = await Review
+				.find( { serviceId: ObjectId(serviceId)})
+				.sort({createdAt: -1}) // sort descending order by create time
+				.toArray()
 		}
 		
 		res.status(200).send(reviews)
@@ -59,9 +62,8 @@ router.get("/api/reviews", async function (req, res, next) {
 router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 	const {
 		username,
-		title,
 		userPhoto,
-		summary,
+		text,
 		rate
 	} = req.body
 	
@@ -75,9 +77,8 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 			username,
 			rate: Number(rate),
 			serviceId: new ObjectId(req.params.serviceId),
-			title,
+			text,
 			image: userPhoto,
-			summary: summary,
 			createdAt: new Date(),
 			updatedAt: new Date()
 		}
@@ -96,9 +97,8 @@ router.post("/api/review/:serviceId", auth, async function (req, res, next) {
 router.patch("/api/review/:reviewId", auth, async function (req, res, next) {
 	const {
 		username,
-		title,
+		text,
 		userPhoto,
-		summary,
 		rate
 	} = req.body
 	
@@ -110,9 +110,8 @@ router.patch("/api/review/:reviewId", auth, async function (req, res, next) {
 		let payload = {
 			username,
 			rate: Number(rate),
-			title,
 			image: userPhoto,
-			summary: summary,
+			text: text,
 			updatedAt: new Date()
 		}
 		
