@@ -6,12 +6,13 @@
 
 
 
-## Modules uses.
+## Module uses
 - Expressjs
 - cors
 - dotenv
 - jwt(jsonwebtoken)
 - formidable (parse formdata)
+- imgbb-uploader (upload image in imgbb)
 - mongodb
 
 ## Functional requirement.
