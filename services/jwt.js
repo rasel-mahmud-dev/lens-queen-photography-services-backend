@@ -5,7 +5,7 @@ exports.createToken = (userId, email, expiresIn)=> {
 			userId: userId,
 			email: email
 		},
-		process.env.JWT_SECRET, {expiresIn: expiresIn ? expiresIn : '1d'}
+		process.env.JWT_SECRET, {expiresIn: expiresIn ? expiresIn : '7d'}
 	)
 }
 

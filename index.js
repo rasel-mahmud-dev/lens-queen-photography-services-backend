@@ -4,16 +4,13 @@ const path = require("path");
 require('dotenv').config()
 
 const routes = require("./routes/index")
-
 const whitelist = [process.env.FRONTEND]
 const corsOptions = {
 	origin: function (origin, callback) {
 		if (whitelist.indexOf(origin) !== -1) {
-			
 			callback(null, true)
 		} else {
-			// callback(null, true)new Error('Not allowed by CORS'))
-			callback(null, true)
+			new Error('Not allowed by CORS')
 		}
 	}
 }
@@ -23,6 +20,8 @@ app.use(cors(corsOptions))
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 
+
+// subscribes all routes
 app.use(routes)
 
 
@@ -40,4 +39,3 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 4000
 
 app.listen(PORT, ()=>console.log(`Server id running port ${PORT}`))
-
