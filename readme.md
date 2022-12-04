@@ -1,9 +1,9 @@
 # Lens-Queen (Backend)
 ## A Photography services website 
 
-## Repo: https://github.com/Porgramming-Hero-web-course/b6a11-service-review-server-side-rasel-mahmud-dev
-## Live: https://lens-queen-api.vercel.app
-
+### Repo: https://github.com/rasel-mahmud-dev/lens-queen-photography-services-backend
+### Live Server: https://lens-queen-api.vercel.app
+### Live Site: https://lens-queen.web.app
 
 
 ## Module uses
@@ -51,3 +51,4 @@
 - POST /api/blogs [public]
 - POST /api/testimonials [public]
 - POST /api/projects [public]
+- And much more...
